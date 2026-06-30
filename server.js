@@ -109,12 +109,13 @@ app.use('/uploads_reports', express.static(path.join(__dirname, 'uploads_reports
 app.use('/uploads_tickets', express.static(path.join(__dirname, 'uploads_tickets')));
 
 // ==================== PostgreSQL ====================
-// ✅ استخدام متغير البيئة DATABASE_URL بدلاً من البيانات الثابتة
+// ✅ استخدام متغير البيئة DATABASE_URL مع فرض IPv4
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false // ضروري للاتصال بـ Supabase
-    }
+    },
+    family: 4  // فرض استخدام IPv4 لحل مشكلة ENETUNREACH
 });
 app.use(express.static(path.join(__dirname, 'build/web')));
 
