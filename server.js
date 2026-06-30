@@ -109,7 +109,7 @@ app.use('/uploads_reports', express.static(path.join(__dirname, 'uploads_reports
 app.use('/uploads_tickets', express.static(path.join(__dirname, 'uploads_tickets')));
 
 // ==================== PostgreSQL ====================
-// ✅ تم التعديل هنا: استخدام متغير البيئة DATABASE_URL بدلاً من البيانات الثابتة
+// ✅ استخدام متغير البيئة DATABASE_URL بدلاً من البيانات الثابتة
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -310,7 +310,7 @@ async function insertCallLogMessage(chatId, callerId, receiverId, status, durati
         duration: duration || 0
     };
     const messageJson = JSON.stringify(messageData);
-    const msgId = uuidv4();
+    const msgId = randomUUID();
     try {
         await pool.query(
             `INSERT INTO messages (id, chat_id, sender_id, message, type, created_at)
@@ -370,7 +370,7 @@ async function handleMissedCall(callId, callerId, receiverId, chatId) {
     try {
         let validCallId = callId;
         if (!isValidUUID(callId)) {
-            validCallId = uuidv4();
+            validCallId = randomUUID();
             console.log(`⚠️ Invalid UUID format for missed call: ${callId}, using new UUID: ${validCallId}`);
         }
         await pool.query(
@@ -414,7 +414,7 @@ async function finalizeCall(callId, callerId, receiverId, chatId, status, durati
     try {
         let validCallId = callId;
         if (!isValidUUID(callId)) {
-            validCallId = uuidv4();
+            validCallId = randomUUID();
             console.log(`⚠️ Invalid UUID format for callId: ${callId}, using new UUID: ${validCallId}`);
         }
         await pool.query(
@@ -470,7 +470,7 @@ app.post('/chat/upload_voice', uploadVoice.single('chat_file'), async (req, res)
     try {
         if (!req.file) return res.status(400).json({ message: "لم يتم اختيار ملف صوتي" });
         const { chat_id, sender_id, duration } = req.body;
-        const msgId = uuidv4();
+        const msgId = randomUUID();
         const result = await pool.query(
             `INSERT INTO messages (id, chat_id, sender_id, message, type, duration, chat_type, created_at) 
              VALUES ($1, $2::uuid, $3::uuid, $4, 'voice', $5, 'group', NOW()) RETURNING *`,
@@ -502,7 +502,7 @@ app.post('/users/signup', async (req, res) => {
         const result = await pool.query(
             `INSERT INTO users (id, username, email, phone, job, password, permissions, user_file, created_at) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING *`,
-            [uuidv4(), username, email, phone, job, password, permissions || [], user_file || null]
+            [randomUUID(), username, email, phone, job, password, permissions || [], user_file || null]
         );
         res.json(result.rows[0]);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -659,7 +659,7 @@ app.post('/reports/create', async (req, res) => {
         return res.status(400).json({ success: false, message: "Missing required fields" });
     }
     try {
-        const id = uuidv4();
+        const id = randomUUID();
         const attachmentsArray = attachments ?? [];
         const result = await pool.query(
             `INSERT INTO reports (id, title, description, status, attachments, link, created_by, created_at, updated_at)
@@ -753,7 +753,7 @@ app.post('/api/tickets/create', uploadTicket.array('attachments', 10), async (re
             return res.status(400).json({ success: false, message: "Device fields (deviceType, serialNumber) are required" });
         }
 
-        const id = uuidv4();
+        const id = randomUUID();
         let attachmentsPaths = [];
         if (req.files && req.files.length > 0) {
             attachmentsPaths = req.files.map(file => '/uploads_tickets/' + file.filename);
@@ -880,9 +880,9 @@ app.post('/conversations/get_or_create', async (req, res) => {
             LIMIT 1
         `, [current_user_id, other_user_id]);
         if (existing.rows.length > 0) return res.json(existing.rows[0]);
-        const newConv = await pool.query('INSERT INTO conversations (id,is_group,created_at) VALUES ($1,false,NOW()) RETURNING id', [uuidv4()]);
+        const newConv = await pool.query('INSERT INTO conversations (id,is_group,created_at) VALUES ($1,false,NOW()) RETURNING id', [randomUUID()]);
         const convId = newConv.rows[0].id;
-        await pool.query('INSERT INTO conversation_members (id,conversation_id,user_id) VALUES ($1,$2,$3),($4,$2,$5)', [uuidv4(), convId, current_user_id, uuidv4(), other_user_id]);
+        await pool.query('INSERT INTO conversation_members (id,conversation_id,user_id) VALUES ($1,$2,$3),($4,$2,$5)', [randomUUID(), convId, current_user_id, randomUUID(), other_user_id]);
         res.json({ id: convId });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -912,13 +912,13 @@ app.post('/conversations/get_or_create_with_details', async (req, res) => {
                 user: userInfo.rows[0] || null
             });
         }
-        const convId = uuidv4();
+        const convId = randomUUID();
         await pool.query('INSERT INTO conversations (id, is_group, created_at) VALUES ($1, false, NOW())', [convId]);
         await pool.query(
             `INSERT INTO conversation_members (id, conversation_id, user_id) VALUES 
              ($1, $2, $3::uuid),
              ($4, $2, $5::uuid)`,
-            [uuidv4(), convId, current_user_id, uuidv4(), other_user_id]
+            [randomUUID(), convId, current_user_id, randomUUID(), other_user_id]
         );
         const userInfo = await pool.query(
             `SELECT id, username, avatar_url, is_online, last_seen FROM users WHERE id = $1::uuid`,
@@ -938,7 +938,7 @@ app.post('/conversations/get_or_create_with_details', async (req, res) => {
 
 app.post('/messages/forward', async (req, res) => {
     const { chat_id, sender_id, message, type, chat_type, duration, original_sender, reply_to_message_id } = req.body;
-    const msgId = uuidv4();
+    const msgId = randomUUID();
     if (!chat_id || !sender_id || !message) {
         return res.status(400).json({ success: false, error: "Missing required fields" });
     }
@@ -1088,7 +1088,7 @@ app.get('/messages/:chat_id', async (req, res) => {
 app.post('/groups/create', async (req, res) => {
     console.log("📥 /groups/create body:", req.body);
     const { name, members, created_by, icon } = req.body;
-    const groupId = uuidv4();
+    const groupId = randomUUID();
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -1102,7 +1102,7 @@ app.post('/groups/create', async (req, res) => {
             try {
                 await client.query(
                     `INSERT INTO group_members (id, group_id, user_id, role) VALUES ($1, $2, $3::uuid, $4)`,
-                    [uuidv4(), groupId, userId, role]
+                    [randomUUID(), groupId, userId, role]
                 );
                 insertedCount++;
             } catch (err) {
@@ -1235,7 +1235,7 @@ app.post('/groups/add_members', async (req, res) => {
                 if (existing.rows.length === 0) {
                     await client.query(
                         `INSERT INTO group_members (id, group_id, user_id, role) VALUES ($1, $2, $3::uuid, 'member')`,
-                        [uuidv4(), group_id, userId]
+                        [randomUUID(), group_id, userId]
                     );
                 }
             }
@@ -1446,7 +1446,7 @@ app.post('/office/status', uploadOfficeImage.single('office_image'), async (req,
                 await client.query(
                     `INSERT INTO office_status_history (id, office_name, shift, owner_id, status, problem_type, problem_details, image_url, image_urls, action, changed_at, changed_by)
                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'delete', NOW(), $10)`,
-                    [uuidv4(), office_name, otherShift, otherRecord.owner_id, otherRecord.status,
+                    [randomUUID(), office_name, otherShift, otherRecord.owner_id, otherRecord.status,
                      otherRecord.problem_type, otherRecord.problem_details, otherRecord.image_url,
                      otherRecord.image_urls, user_id]
                 );
@@ -1469,7 +1469,7 @@ app.post('/office/status', uploadOfficeImage.single('office_image'), async (req,
                 await client.query(
                     `INSERT INTO office_status (id, office_name, shift, owner_id, status, problem_type, problem_details, image_url, image_urls, created_at, updated_at)
                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())`,
-                    [uuidv4(), office_name, shift, user_id, status, parsedProblemType, newProblemDetails, newImageUrl, imageUrlsArray]
+                    [randomUUID(), office_name, shift, user_id, status, parsedProblemType, newProblemDetails, newImageUrl, imageUrlsArray]
                 );
             } else {
                 const record = existing.rows[0];
@@ -1493,7 +1493,7 @@ app.post('/office/status', uploadOfficeImage.single('office_image'), async (req,
             await client.query(
                 `INSERT INTO office_status_history (id, office_name, shift, owner_id, status, problem_type, problem_details, image_url, image_urls, action, changed_at, changed_by)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), $11)`,
-                [uuidv4(), office_name, shift, user_id, status, parsedProblemType, newProblemDetails, newImageUrl, imageUrlsArray, action, user_id]
+                [randomUUID(), office_name, shift, user_id, status, parsedProblemType, newProblemDetails, newImageUrl, imageUrlsArray, action, user_id]
             );
 
             await client.query('COMMIT');
@@ -1540,7 +1540,7 @@ app.delete('/office/status/:office_name/:shift', async (req, res) => {
         await client.query(
             `INSERT INTO office_status_history (id, office_name, shift, owner_id, status, problem_type, problem_details, image_url, image_urls, action, changed_at, changed_by)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'delete', NOW(), $10)`,
-            [uuidv4(), office_name, shift, record.owner_id, record.status, record.problem_type, record.problem_details, record.image_url, record.image_urls, user_id]
+            [randomUUID(), office_name, shift, record.owner_id, record.status, record.problem_type, record.problem_details, record.image_url, record.image_urls, user_id]
         );
         await client.query(`DELETE FROM office_status WHERE office_name = $1 AND shift = $2`, [office_name, shift]);
         await client.query('COMMIT');
@@ -1656,7 +1656,7 @@ io.on('connection', (socket) => {
     socket.on("message", async (data) => {
         console.log("📥 Incoming message data:", data);
         const { chat_id, sender_id, message, type, chat_type, reply_to_message_id } = data;
-        const msgId = uuidv4();
+        const msgId = randomUUID();
         if (!chat_id || !sender_id || !message) {
             console.error("⚠️ Missing fields, message not saved");
             return;
