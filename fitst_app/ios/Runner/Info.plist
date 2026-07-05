@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- اسم التطبيق -->
+    <key>CFBundleName</key>
+    <string>MyApp</string>
+
+    <!-- صلاحية الوصول إلى الكاميرا -->
+    <key>NSCameraUsageDescription</key>
+    <string>يحتاج التطبيق الوصول إلى الكاميرا لالتقاط الصور والفيديوهات</string>
+
+    <!-- صلاحية الوصول إلى الصور -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>يحتاج التطبيق الوصول إلى مكتبة الصور لتحميل الصور والفيديوهات</string>
+
+    <!-- صلاحية الوصول إلى الملفات -->
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>يحتاج التطبيق الوصول إلى مجلد المستندات لحفظ الملفات</string>
+    <key>NSMicrophoneUsageDescription</key>
+<string>نحتاج للوصول إلى الميكروفون لتسجيل الرسائل الصوتية</string>
+
+    <!-- صلاحية الوصول إلى الميكروفون -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>يحتاج التطبيق الوصول إلى الميكروفون لتسجيل الصوت</string>
+
+    <!-- 📍 صلاحيات الموقع الجغرافي (تمت الإضافة هنا) -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>نحتاج للوصول إلى موقعك لمشاركته مع أصدقائك في الدردشة</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>نحتاج للوصول إلى موقعك لتوفير ميزة مشاركة الموقع بدقة</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>نحتاج للوصول إلى موقعك لمشاركته في الدردشة حتى عند تشغيل التطبيق في الخلفية</string>
+    <key>LSApplicationQueriesSchemes</key>
+<array>
+    <string>tel</string>
+</array>
+
+    <!-- وضعية التطبيقات الحديثة -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    </array>
+
+    <!-- إعدادات إضافية ضرورية لـ Flutter -->
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+    <true/>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+</dict>
+</plist>
